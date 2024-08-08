@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Game</title>
+    <style>
+        #waiting-text {
+            display: none;
+        }
+        #game-over-section {
+            display: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+</head>
+<body>
+    <div id="create-game-section">
+        <h1>Create a New Game</h1>
+        <input type="text" id="game-id-create" placeholder="Optional: Enter Game ID" />
+        <button onclick="createGame()">Create Game</button>
+    </div>
+    <div id="join-game-section">
+        <h1>Join an Existing Game</h1>
+        <input type="text" id="game-id-join" placeholder="Enter Game ID" />
+        <button onclick="joinGame()">Join Game</button>
+    </div>
+    <div id="game-section" style="display: none;">
+        <h1>Game</h1>
+        <p id="current-question-text"></p>
+        <input type="text" id="response" placeholder="Your answer" />
+        <button onclick="submitResponse()">Submit Response</button>
+        <div id="waiting-text">
+            <p>Waiting for all players to answer...</p>
+        </div>
+    </div>
+    <div id="game-over-section">
+        <h1>Game Over</h1>
+        <div id="responses">
+            <div id="Jaký?"><strong>Jaký?: </strong><span></span></div>
+            <div id="Kdo?"><strong>Kdo?: </strong><span></span></div>
+            <div id="S kým?"><strong>S kým?: </strong><span></span></div>
+            <div id="Kdy?"><strong>Kdy?: </strong><span></span></div>
+            <div id="Kde?"><strong>Kde?: </strong><span></span></div>
+            <div id="Co dělali?"><strong>Co dělali?: </strong><span></span></div>
+            <div id="Proč?"><strong>Proč?: </strong><span></span></div>
+        </div>
+    </div>
+
+    <script>
+        let gameId = null;
+        let deviceId = null;
+        const socket = io();
+    
+        function createGame() {
+            const gameIdInput = document.getElementById('game-id-create').value;
+            fetch('/create_game', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ game_id: gameIdInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.game_id) {
+                    gameId = data.game_id;
+                    document.getElementById('create-game-section').style.display = 'none';
+                    document.getElementById('join-game-section').style.display = 'block';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    
+        function joinGame() {
+            const gameIdInput = document.getElementById('game-id-join').value;
+            fetch('/join_game', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ game_id: gameIdInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.device_id) {
+                    deviceId = data.device_id;
+                    gameId = gameIdInput;
+                    document.getElementById('create-game-section').style.display = 'none';
+                    document.getElementById('join-game-section').style.display = 'none';
+                    document.getElementById('game-section').style.display = 'block';
+                    document.getElementById('current-question-text').textContent = data.current_question;
+    
+                    // Emit join event
+                    socket.emit('join', { game_id: gameId, device_id: deviceId });
+    
+                    // Listen for real-time updates
+                    socket.on('question_update', function(data) {
+                        document.getElementById('current-question-text').textContent = data.current_question;
+                        document.getElementById('waiting-text').style.display = 'none'; // Hide waiting text when question updates
+                    });
+    
+                    socket.on('game_over', function(data) {
+                        const deviceResponses = data.shuffled_responses[deviceId] || {};
+                        
+                        // Update the HTML for each question
+                        for (const [question, response] of Object.entries(deviceResponses)) {
+                            const element = document.getElementById(question);
+                            if (element) {
+                                element.querySelector('span').textContent = response;
+                            }
+                        }
+                        
+                        // Show game over section and hide game section
+                        document.getElementById('game-section').style.display = 'none';
+                        document.getElementById('game-over-section').style.display = 'block';
+                    });
+    
+                    socket.on('waiting', function() {
+                        document.getElementById('waiting-text').style.display = 'block'; // Show waiting text
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    
+        function submitResponse() {
+            const response = document.getElementById('response').value;
+            fetch('/submit_response', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ game_id: gameId, device_id: deviceId, response: response })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show waiting message when response is submitted
+                document.getElementById('waiting-text').style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    
+        socket.on('connect', () => {
+            console.log('Connected to Socket.IO server');
+        });
+    
+        socket.on('disconnect', () => {
+            console.log('Disconnected from Socket.IO server');
+        });
+    </script>
+    
+    
+    
+</body>
+</html>
