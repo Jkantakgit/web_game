@@ -85,76 +85,36 @@ def leave_game():
 
                 return  # Exit after removing the player
 
+def create_list_with_length(n):
+    return [[None, None] for _ in range(n)]
 
 def shuffle(responses, game):
-    responses_by_question = defaultdict(list)
+    players = list(game['players'].keys())
+    num_players = len(players)
+
+
+    device_index = defaultdict(int)
+    for ind, device in enumerate(list(game['players'].keys())):
+        device_index[device] = ind
+
+
+    responses_by_question = defaultdict(lambda: create_list_with_length(num_players))
+    
     for question, responses_list in responses.items():
         for resp in responses_list:
-            responses_by_question[question].append((resp['device_id'],resp['response']))
-
+            ind = device_index[resp['device_id']]
+            responses_by_question[question][ind] = [resp['device_id'], resp['response']]
+    
     responses_by_device = defaultdict(list)
-    for device in game['players']:
-        for question in responses_by_question:
-            if question == "Jaký?":
-                for player in range(len(game['players'])):
-                    responses_by_device[device].append(responses_by_question[question][player])
-            else:
-                for player in range(len(game['players'])):
-                    valid = range(len(game['players']))
-                    for i in range(len(game['players'])):
-                        rand = random.randrange(len(game['players']))
-                        if responses_by_device[device][]
-
-
-    print(responses_by_device)
-
-
     
+    for question_index, (question, responses_list) in enumerate(responses_by_question.items()):
+        for index, device in enumerate(players):
+            # Calculate the correct index for this device's response
+            response_index = (index + question_index) % num_players
+            selected_response = responses_list[response_index][1]
+            responses_by_device[device].append((question, selected_response))
 
-    """ # Initialize data structures
-    responses_by_device = defaultdict(list)
-    questions = defaultdict(list)
-
-    # Collect responses for each device
-    for question, responses_list in responses.items():
-        if not isinstance(responses_list, list):
-            raise TypeError(f"Expected list for responses under question '{question}'")
-        
-        for resp in responses_list:
-            if not isinstance(resp, dict):
-                raise TypeError(f"Expected dictionary for response item under question '{question}'")
-            if 'device_id' not in resp or 'response' not in resp:
-                raise KeyError(f"Response item under question '{question}' missing 'device_id' or 'response'")
-            responses_by_device[resp['device_id']].append((question, resp['response']))
-
-    # Prepare the final output format
-    results_by_device = defaultdict(dict)
-    
-    # For each device, prepare the shuffled responses
-    for device_id, responses_list in responses_by_device.items():
-        # Track the last device ID used to avoid repetition
-        last_device_id = None
-        for question, _ in responses_list:
-            # Find a different response if the last one was from the same device
-            if last_device_id == device_id:
-                available_responses = []
-                for d, resps in responses_by_device.items():
-                    for q, r in resps:
-                        if q == question and d != last_device_id:
-                            available_responses.append((d, q, r))
-                
-                if available_responses:
-                    last_device_id, question, response = random.choice(available_responses)
-                    responses_by_device[last_device_id].remove((question, response))
-                else:
-                    raise ValueError("No valid responses available from different devices")
-            else:
-                response = next(r for q, r in responses_by_device[device_id] if q == question)
-                last_device_id = device_id
-                
-            results_by_device[device_id][question] = response
-    
-    return results_by_device """
+    return responses_by_device
 
     
 @app.route('/submit_response', methods=['POST'])

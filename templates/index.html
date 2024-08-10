@@ -98,10 +98,18 @@
                         const deviceResponses = data.shuffled_responses[deviceId] || {};
                         
                         // Update the HTML for each question
-                        for (const [question, response] of Object.entries(deviceResponses)) {
+                        for (const [question, response] of deviceResponses) {
+                            // Find the element by the question text
                             const element = document.getElementById(question);
+                            
+                            // If the element exists, update its text content
                             if (element) {
-                                element.querySelector('span').textContent = response;
+                                const span = element.querySelector('span');
+                                
+                                // Check if the span exists, then set its text content
+                                if (span) {
+                                    span.textContent = response;
+                                }
                             }
                         }
                         
