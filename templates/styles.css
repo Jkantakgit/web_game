@@ -1,0 +1,100 @@
+
+.caption{
+    color: white;
+    text-align: center;
+    font-size: 24px;
+    background-color: black;
+}
+
+
+.createGame{
+    text-align: left;
+    margin-bottom: 100px;
+
+}
+
+input{
+    border-radius:15px;
+    text-align: center;
+    width: 15%;
+    height: 30px;
+    font-size: 20px;
+    margin-right: 50px;
+}
+
+input:hover{
+    border-color: red;
+}
+
+button{
+    border-radius: 15px;
+    width: 10%;
+    height: 5%;
+}
+
+.joinGame{
+    text-align: left;
+}
+
+.gameId{
+    display: flex;
+    text-align: left;
+    font-size: 15px;
+}
+
+.gameId p{
+    margin: 0;
+    padding: 0;
+    margin-right: 10px;
+}
+
+.players{
+    display: flex;
+    text-align: right;
+    font-size: 15px;
+}
+
+.players p{
+    margin: 0;
+    padding: 0;
+    margin-right: 10px;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between; 
+    margin: 20px; 
+}
+
+
+.game{
+    font-size: 30px;
+    margin-bottom: 100px;
+}
+
+.end{
+    text-align: left;
+}
+
+.playAgain{
+    text-align: center;
+}
+.playAgain:hover{
+    border-color: red;
+    border-width: 3px;
+    cursor: pointer;
+}
+
+.playAgainDiv{
+    text-align: left;
+    margin-top: 40px;
+}
+
+
+#butt {
+    position: absolute; /* Allows free movement */
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out; /* Smooth movement */
+}

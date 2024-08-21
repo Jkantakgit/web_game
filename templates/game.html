@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="cz">
+<head>
+    <meta http-equiv="refresh" content="1">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="caption">
+    <div class="container">
+        <div class="gameId">
+            <p>ID mistonosti: </p>
+            <p id="gameID">1</p>
+        </div>
+        <div class="players">
+            <p>Pocet hracu:</p>
+            <p id="playersNum">1</p>
+        </div>
+    </div>
+    
+    <h1 class="game">Hra</h1>
+
+    <div id="game-section">
+        <p id="current-question-text"></p>
+        <input type="text" id="response" placeholder="Your answer" />
+        <button onclick="submitResponse()">Odeslat odpověď</button>
+        <div id="waiting-text" style="display: none;">
+            <p>Čekej než odpoví ostatní hráči...</p>
+        </div>
+    </div>
+    
+</body>
+</html>

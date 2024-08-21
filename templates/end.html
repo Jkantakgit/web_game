@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="caption">
+<div>
+    <h1>Konec hry</h1>
+</div>
+
+
+<div class="end">
+    <h2>Konecny pribeh</h2>
+            <div id="Jaký?"><strong>Jaký?: </strong><span></span></div>
+            <div id="Kdo?"><strong>Kdo?: </strong><span></span></div>
+            <div id="S kým?"><strong>S kým?: </strong><span></span></div>
+            <div id="Kdy?"><strong>Kdy?: </strong><span></span></div>
+            <div id="Kde?"><strong>Kde?: </strong><span></span></div>
+            <div id="Co dělali?"><strong>Co dělali?: </strong><span></span></div>
+            <div id="Proč?"><strong>Proč?: </strong><span></span></div>
+</div>
+<div class="playAgainDiv">
+<button id="butt"  class="playAgain" id="playAgain" type="button">Zacit novou hru</button>
+</div>
+
+</body>
+
+<script>
+    const button = document.getElementById('butt');
+
+    // Function to move the button
+    function moveButtonAway(event) {
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const buttonRect = button.getBoundingClientRect();
+            const buttonX = buttonRect.left + buttonRect.width / 2;
+            const buttonY = buttonRect.top + buttonRect.height / 2;
+
+            const distX = mouseX - buttonX;
+            const distY = mouseY - buttonY;
+            const distance = Math.sqrt(distX * distX + distY * distY);
+
+            const maxDistance = 200;
+
+            if (distance < maxDistance) {
+                const offsetX = (buttonX - mouseX) * 0.1;
+                const offsetY = (buttonY - mouseY) * 0.1;
+
+                let newLeft = buttonRect.left + offsetX;
+                let newTop = buttonRect.top + offsetY;
+
+                // Check if the button is near the edges
+                const margin = 20; // Distance from the edge to trigger teleport
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                if (newLeft < margin || newLeft > viewportWidth - buttonRect.width - margin ||
+                    newTop < margin || newTop > viewportHeight - buttonRect.height - margin) {
+                    
+                    // Teleport to a random position within the viewport
+                    newLeft = Math.random() * (viewportWidth - buttonRect.width);
+                    newTop = Math.random() * (viewportHeight - buttonRect.height);
+                }
+
+                button.style.left = newLeft + 'px';
+                button.style.top = newTop + 'px';
+            }
+        }
+
+        document.addEventListener('mousemove', moveButtonAway);
+</script>
+
+</html>
