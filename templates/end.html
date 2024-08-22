@@ -21,12 +21,16 @@
             <div id="Proč?"><strong>Proč?: </strong><span></span></div>
 </div>
 <div class="playAgainDiv">
-<button id="butt"  class="playAgain" id="playAgain" type="button">Zacit novou hru</button>
+<button id="butt"  class="playAgain" type="button" onclick="PlayAgain()" >Zacit novou hru</button>
+</div>
+
+<div>
+    <button id="Save"  type="button" onclick="SaveStory()">Ulozit pribeh</button>
 </div>
 
 </body>
 
-<script>
+<!-- <script>
     const button = document.getElementById('butt');
 
     // Function to move the button
@@ -69,6 +73,6 @@
         }
 
         document.addEventListener('mousemove', moveButtonAway);
-</script>
+</script> -->
 
 </html>
