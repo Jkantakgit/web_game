@@ -1,0 +1,107 @@
+    <!-- 
+    filename: index.html
+
+    brief Description: Index page for game
+
+    Author: Petr Holánek
+    Created: 30.8.2024
+    Last Modified: 30.8.2024
+    --> 
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+        <!-- import css styles --> 
+        <link rel="stylesheet" type="text/css" href="/css/styles.css">
+        <script type="module" src="{{ url_for('static', filename='js/game.js') }}"></script>
+        <title>Web Game</title>
+        <style>
+            #waiting-text {
+                display: none;
+            }
+            #game-over-section {
+                display: none;
+            }
+        </style>
+        
+    </head>
+    <body class="caption">
+        <div id="join-game-section" class="create-game-section">
+        <div>
+            <!-- main text-->
+            <h1> Lobby</h1>
+        </div>
+        
+        <!-- Create game section -->
+        <div id="create-game-section" class="createGame">
+            <h2>Vytvorit hru</h2>
+            <input type="text" id="game-id-create" placeholder="Kod mistonosti">
+            <button onclick="createGame()">Vytvořit hru</button>
+        </div>
+        
+        <!-- Join game section -->
+        <div class="joinGame">
+            <h2>Připojit se</h2>
+            <input type="text" id="game-id-join" placeholder="Kód mistonosti">
+            <button onclick="joinGame()">Připojit</button>
+        </div>
+        </div>
+
+        <!-- Game section -->
+
+        <div id="game-section" style="display: none;">
+            <div class="container">
+                <div class="gameId">
+                    <p>ID mistonosti: </p>
+                    <p id="gameID"></p>
+                </div>
+                <div class="players">
+                    <p>Pocet hracu:</p>
+                    <p id="playersNum">0</p>
+                </div>
+            </div>
+            
+            <h1 class="game">Hra</h1>
+        
+            <div>
+                <p id="current-question-text"></p>
+                <input type="text" id="response" placeholder="Tvoje odpověď" />
+                <button onclick="submitResponse()">Odeslat odpověď</button>
+                <div id="waiting-text" style="display: none;">
+                    <p>Čekej než odpoví ostatní hráči...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game over section -->
+        <div id="game-over-section">
+
+        <div>
+            <h1>Konec hry</h1>
+        </div>
+        
+        
+        <div id="responses" class="end">
+            <h2>Konecny pribeh</h2>
+                    <div id="Jaký?"><strong>Jaký?: </strong><span></span></div>
+                    <div id="Kdo?"><strong>Kdo?: </strong><span></span></div>
+                    <div id="S kým?"><strong>S kým?: </strong><span></span></div>
+                    <div id="Kdy?"><strong>Kdy?: </strong><span></span></div>
+                    <div id="Kde?"><strong>Kde?: </strong><span></span></div>
+                    <div id="Co dělali?"><strong>Co dělali?: </strong><span></span></div>
+                    <div id="Proč?"><strong>Proč?: </strong><span></span></div>
+        </div>
+        <div class="playAgainDiv">
+        <button id="butt"  class="playAgain" type="button" onclick="PlayAgain()" >Zacit novou hru</button>
+        </div>
+        
+        <div>
+            <button id="Save"  type="button" onclick="SaveStory()">Ulozit pribeh</button>
+        </div>
+        
+        </div>
+
+        
+    </body>    
+</html>
