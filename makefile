@@ -5,5 +5,5 @@
 
 
 run:
-	.\app.py
+	python .\app.py
 

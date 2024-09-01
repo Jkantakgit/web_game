@@ -5,11 +5,11 @@
 #
 # Author: Petr Holánek
 # Created: 30.8.2024
-# last modified: 30.8.2024
+# last modified: 1.9.2024
 
 # Imports
 from flask import Flask, request, jsonify, render_template
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import uuid
 import random
 from collections import defaultdict
@@ -100,28 +100,6 @@ def join_game():
     current_question = questions[games[game_id]['current_question']] # get current question to show to the user
     return jsonify({'status': 'Joined game', 'device_id': device_id, 'current_question': current_question, 'player_count': len(games[game_id]['players'])}), 200
 
-# Endpoint for leaving game
-# TODO: Not working as intended
-@app.route('/leave_game', methods = ['POST'])
-def leave_game():
-    for game_id, game_data in games.items():
-        for device_id in list(game_data['players'].keys()):
-            if request.sid == socketio.server.manager.sid_from_environ(request.environ):
-                # Remove the player from the game
-                del game_data['players'][device_id]
-                print(f"Player {device_id} removed from game {game_id}")
-
-                # Optionally, remove the player from the submitted_players list
-                if device_id in game_data['submitted_players']:
-                    game_data['submitted_players'].remove(device_id)
-
-                # Check if no players are left in the game
-                if not game_data['players']:
-                    del games[game_id]  # Clean up the game if empty
-                    print(f"Game {game_id} deleted because it is empty")
-
-                return  # Exit after removing the player
-
 # Function to create list with lenght of parameret n
 def create_list_with_length(n):
     return [[None, None] for _ in range(n)]
@@ -203,6 +181,34 @@ def submit_response():
     
     return jsonify({'status': 'Response submitted'}), 200
 
+@app.route('/leave_game', methods=['POST'])
+def leave_game():
+    data = request.json
+    game_id = data.get('game_id') # get game id from user
+    device_id = data.get('device_id') # get device id from user
+
+    # if user is in the game room
+    if game_id in games and device_id in games[game_id]['players']:
+        del games[game_id]['players'][device_id] #delete user from the game
+
+        # Remove the player's responses
+        for question in questions:
+            if question in games[game_id]['responses']:
+                games[game_id]['responses'][question] = [
+                    resp for resp in games[game_id]['responses'][question] 
+                    if resp['device_id'] != device_id
+                ]
+
+        # Emit player number change
+        socketio.emit('player_update', {'game_id': game_id, 'player_count': len(games[game_id]['players'])}, room=game_id)
+
+        # If no players left in the game, delete it
+        if len(games[game_id]['players']) == 0:
+            del games[game_id]
+
+    return jsonify({'status': 'left game'}), 200
+
+
 # Socket on connect
 @socketio.on('join')
 def handle_join(data):
@@ -211,13 +217,8 @@ def handle_join(data):
     join_room(game_id)
     print(f"Player {device_id} joined game {game_id}")
 
-# Socket on disconnect
-#  TODO: Not working as intended
-@socketio.on('disconnect')
-def handle_disconnect():
-    leave_game()
-    print('A player disconnected')
 
+# Start web server
 if __name__ == '__main__':
     local_ip = get_local_ip()
     print(f"Server running on http://{local_ip}:5000")

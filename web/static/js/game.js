@@ -1,11 +1,23 @@
+/* 
+filename: game.js
 
-let gameId = null;
-let deviceId = null;
-const socket = io();
+Client side of web game known as paper bending game
 
+Author: Petr Holánek
+Created: 30.8.2024
+last modified: 1.9.2024 
+*/
+
+
+
+let gameId = null; // variable for gameId
+let deviceId = null; // variable for deviceId
+const socket = io(); //socket
+
+//fucntion for creating game with optional game id 
 export function createGame() {
-    console.log("Create")
-    const gameIdInput = document.getElementById('game-id-create').value;
+    const gameIdInput = document.getElementById('game-id-create').value; //get optonal game id from user
+    //go to endpoint create game
     fetch('/create_game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -14,17 +26,17 @@ export function createGame() {
     .then(response => response.json())
     .then(data => {
         if (data.game_id) {
-            gameId = data.game_id;
-            document.getElementById('create-game-section').style.display = 'none';
-            document.getElementById('join-game-section').style.display = 'block';
-            joinGame(gameId)
+            gameId = data.game_id; //set game id to current game_id
+            document.getElementById('join-game-section').style.display = 'none'; // display game section
+            joinGame(gameId, true) // join game after creation and set the user as admin
         }
     })
     .catch(error => console.error('Error:', error));
 }
-
+//function to join existing game
 export function joinGame(gameIdFromCreate = null, isAdmin = false) {
-    const gameIdInput = gameIdFromCreate || document.getElementById('game-id-join').value;
+    const gameIdInput = gameIdFromCreate || document.getElementById('game-id-join').value; // get game_id from create endpoint or from user input
+    //go to endpoint for joining gameroom
     fetch('/join_game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,17 +45,13 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
     .then(response => response.json())
     .then(data => {
         if (data.device_id) {
-            deviceId = data.device_id;
-            gameId = gameIdInput;
-            document.getElementById('create-game-section').style.display = 'none';
-            document.getElementById('join-game-section').style.display = 'none';
-            document.getElementById('game-section').style.display = 'block';
-            document.getElementById('current-question-text').textContent = data.current_question;
-            document.getElementById('gameID').textContent = gameId;
-            document.getElementById('playersNum').textContent = data.player_count;
-
-            // Emit join event
-            socket.emit('join', { game_id: gameId, device_id: deviceId });
+            deviceId = data.device_id; // set device id from response
+            gameId = gameIdInput; // set game id from response
+            document.getElementById('join-game-section').style.display = 'none'; // hide create game section
+            document.getElementById('game-section').style.display = 'block'; // display game section
+            document.getElementById('current-question-text').textContent = data.current_question; // update current question text
+            document.getElementById('gameID').textContent = gameId; // update game id text 
+            document.getElementById('playersNum').textContent = data.player_count; // update player count for game roomm
 
             // Listen for player count updates
             socket.on('player_update', function(data) {
@@ -52,12 +60,16 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
                 }
             });
 
+            // Emit join event
+            socket.emit('join', { game_id: gameId, device_id: deviceId });
+
             // Listen for real-time updates
             socket.on('question_update', function(data) {
                 document.getElementById('current-question-text').textContent = data.current_question;
                 document.getElementById('waiting-text').style.display = 'none'; // Hide waiting text when question updates
             });
 
+            // listen for game over event
             socket.on('game_over', function(data) {
                 const deviceResponses = data.shuffled_responses[deviceId] || {};
                 
@@ -90,6 +102,7 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
     .catch(error => console.error('Error:', error));
 }
 
+// Function to submit response to the current question
 export function submitResponse() {
     const response = document.getElementById('response').value;
     fetch('/submit_response', {
@@ -105,15 +118,20 @@ export function submitResponse() {
     .catch(error => console.error('Error:', error));
 }
 
+// Socket event listeners
 socket.on('connect', () => {
     console.log('Connected to Socket.IO server');
 });
 
-socket.on('disconnect', () => {
-    console.log('Disconnected from Socket.IO server');
-});
-
-
+// window listener before the user leaves site
+window.onbeforeunload = function() {
+    fetch('/leave_game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, device_id: deviceId})
+    })
+    socket.emit('leave_game', {gameId: gameId, deviceId: deviceId});
+};
 
 window.createGame = createGame;
 window.joinGame = joinGame;
