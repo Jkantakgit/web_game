@@ -28,6 +28,7 @@ export function createGame() {
         if (data.game_id) {
             gameId = data.game_id; //set game id to current game_id
             document.getElementById('join-game-section').style.display = 'none'; // display game section
+            document.getElementById('admin-section').style.display = 'block'; // display admin section
             joinGame(gameId, true) // join game after creation and set the user as admin
         }
     })
@@ -49,6 +50,9 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
             gameId = gameIdInput; // set game id from response
             document.getElementById('join-game-section').style.display = 'none'; // hide create game section
             document.getElementById('game-section').style.display = 'block'; // display game section
+            document.getElementById('admin-section').style.display = isAdmin? 'block' : 'none'; // show admin menu based on admin status
+            document.getElementById('waiting-section').style.display = isAdmin? 'none' : 'block'; // show admin menu based on admin status
+            document.getElementById('question-section').style.display = 'none '; // hide question section
             document.getElementById('current-question-text').textContent = data.current_question; // update current question text
             document.getElementById('gameID').textContent = gameId; // update game id text 
             document.getElementById('playersNum').textContent = data.player_count; // update player count for game roomm
@@ -60,13 +64,24 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
                 }
             });
 
+            socket.on('game_started', function(data) {
+                if (data.game_id === gameId){
+                    console.log('game started');
+                    document.getElementById('waiting-section').style.display = 'none'; // Hide waiting text when game starts
+                    document.getElementById('admin-section').style.display = 'none' // Hide admin menu
+                    document.getElementById('question-section').style.display = 'block'; // Show question section
+                }
+            });
+
             // Emit join event
             socket.emit('join', { game_id: gameId, device_id: deviceId });
 
             // Listen for real-time updates
             socket.on('question_update', function(data) {
                 document.getElementById('current-question-text').textContent = data.current_question;
-                document.getElementById('waiting-text').style.display = 'none'; // Hide waiting text when question updates
+                // Hide waiting text when the next question is shown
+                const waitingText = document.getElementById('waiting-text');
+                waitingText.style.display = 'none';
             });
 
             // listen for game over event
@@ -104,6 +119,7 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
 
 // Function to submit response to the current question
 export function submitResponse() {
+    document.getElementById('waiting-text').style.display = 'block';
     const response = document.getElementById('response').value;
     fetch('/submit_response', {
         method: 'POST',
@@ -112,8 +128,29 @@ export function submitResponse() {
     })
     .then(response => response.json())
     .then(data => {
-        // Show waiting message when response is submitted
-        document.getElementById('waiting-text').style.display = 'block';
+    })
+    .catch(error => console.error('Error:', error));
+
+    // Listen for real-time updates
+    socket.on('question_update', function(data) {
+        document.getElementById('current-question-text').textContent = data.current_question;
+        // Hide waiting text when the next question is shown
+        console.log('hide waiting text')
+        document.getElementById('waiting-text').style.display = 'none';
+    });
+
+}
+
+export function startGame(){
+    fetch('/start_game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, device_id: deviceId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Show waiting message when game starts
+        document.getElementById('admin-section').style.display = 'none';
     })
     .catch(error => console.error('Error:', error));
 }
@@ -136,3 +173,4 @@ window.onbeforeunload = function() {
 window.createGame = createGame;
 window.joinGame = joinGame;
 window.submitResponse = submitResponse;
+window.startGame = startGame;

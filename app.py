@@ -54,7 +54,6 @@ def index():
     return render_template('index.html', server_ip=get_local_ip()) # returns index template to the user
 
 # Endpoint for game creation
-# TODO: user who creates game should be admin
 @app.route('/create_game', methods=['POST'])
 def create_game():
     data = request.json
@@ -63,7 +62,7 @@ def create_game():
     if provided_game_id not in games: #checks if game id is already created
         game_id = provided_game_id
     else:
-        game_id = str(uuid.uuid4()) # if game exists creates random game id
+        game_id = stdocument.getElementById('waiting-text').style.display = 'none'; # Hide waiting text when game starts
     
     # Initialize the game data structure
     games[game_id] = {
@@ -136,7 +135,6 @@ def shuffle(responses, game):
 
 
 # Endpoint for submitting response
-# TODO: Start game by admin
 @app.route('/submit_response', methods=['POST'])
 def submit_response():
     data = request.json
@@ -154,8 +152,9 @@ def submit_response():
         return jsonify({'error': 'Player not part of this game.'}), 403
     
     question = questions[game['current_question']] # gets current question
-    game['responses'][question].append({'device_id': device_id, 'response': response}) # add response to array of responses
-    game['submitted_players'].add(device_id) # add device to submitted players
+    if device_id not in game['responses'][question]:
+        game['responses'][question].append({'device_id': device_id, 'response': response}) # add response to array of responses
+        game['submitted_players'].add(device_id) # add device to submitted players
     
     # Check if all players have submitted responses
     if len(game['submitted_players']) >= len(game['players']):
@@ -171,6 +170,7 @@ def submit_response():
         else:
             shuffled_responses = shuffle(game['responses'], game)
             socketio.emit('game_over', {'shuffled_responses': shuffled_responses}, room=game_id)
+            del shuffled_responses
     
     # Emit waiting event to all players who have submitted
     else:
@@ -207,6 +207,18 @@ def leave_game():
             del games[game_id]
 
     return jsonify({'status': 'left game'}), 200
+
+@app.route('/start_game', methods=['POST'])
+def start_game():
+    data = request.json
+    game_id = data.get('game_id') # get game id from user
+    device_id = data.get('device_id') # get device id
+
+    if device_id == games[game_id]['admin']:
+        games[game_id]['started'] = True
+        socketio.emit('game_started', {'game_id': game_id}, room=game_id)
+    
+    return jsonify({'status': 'game started'}), 200
 
 
 # Socket on connect

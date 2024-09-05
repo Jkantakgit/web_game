@@ -62,8 +62,16 @@
             </div>
             
             <h1 class="game">Hra</h1>
+
+            <div id="admin-section" style="display: none;">
+                <button onclick="startGame()">Zahájit hru</button>
+            </div>
+    
+            <div id="waiting-section">
+                <p>Čekej než začne hra</p>
+            </div>
         
-            <div>
+            <div id="question-section">
                 <p id="current-question-text"></p>
                 <input type="text" id="response" placeholder="Tvoje odpověď" />
                 <button onclick="submitResponse()">Odeslat odpověď</button>
@@ -72,6 +80,8 @@
                 </div>
             </div>
         </div>
+
+        
 
         <!-- Game over section -->
         <div id="game-over-section">
