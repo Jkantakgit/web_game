@@ -62,7 +62,7 @@ def create_game():
     if provided_game_id not in games: #checks if game id is already created
         game_id = provided_game_id
     else:
-        game_id = stdocument.getElementById('waiting-text').style.display = 'none'; # Hide waiting text when game starts
+        game_id = str(uuid.uuid4()) # if game exists creates random game id
     
     # Initialize the game data structure
     games[game_id] = {
@@ -169,7 +169,7 @@ def submit_response():
         #if question was last
         else:
             shuffled_responses = shuffle(game['responses'], game)
-            socketio.emit('game_over', {'shuffled_responses': shuffled_responses}, room=game_id)
+            socketio.emit('game_over', {'shuffled_responses': shuffled_responses}, room=game_id, admin = game[game_id]["admin"])
             del shuffled_responses
     
     # Emit waiting event to all players who have submitted

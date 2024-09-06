@@ -86,6 +86,9 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
 
             // listen for game over event
             socket.on('game_over', function(data) {
+                if (data.admin === deviceId) {
+                    document.getElementById('playAgainDiv').style.display = 'block';
+                }
                 const deviceResponses = data.shuffled_responses[deviceId] || {};
                 
                 // Update the HTML for each question
@@ -107,6 +110,14 @@ export function joinGame(gameIdFromCreate = null, isAdmin = false) {
                 // Show game over section and hide game section
                 document.getElementById('game-section').style.display = 'none';
                 document.getElementById('game-over-section').style.display = 'block';
+            });
+
+            socket.on('play_again', function(data){
+                if (data.admin === deviceId) {
+                    document.getElementById('playAgainDiv').style.display = 'none';
+                }
+                document.getElementById('responses').style.display = 'none';
+                document.getElementById('Save').style.display = 'none';
             });
 
             socket.on('waiting', function() {
@@ -141,6 +152,7 @@ export function submitResponse() {
 
 }
 
+// Function to start the game for admin
 export function startGame(){
     fetch('/start_game', {
         method: 'POST',
@@ -151,6 +163,32 @@ export function startGame(){
     .then(data => {
         // Show waiting message when game starts
         document.getElementById('admin-section').style.display = 'none';
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+export function saveStory(){
+    fetch('/save_story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, device_id: deviceId, story: deviceResponses})
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Story saved successfully');
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+export function playAgain(){
+    fetch('/play_again', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, device_id: deviceId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Game restarted');
     })
     .catch(error => console.error('Error:', error));
 }
@@ -170,7 +208,11 @@ window.onbeforeunload = function() {
     socket.emit('leave_game', {gameId: gameId, deviceId: deviceId});
 };
 
+
+
 window.createGame = createGame;
 window.joinGame = joinGame;
 window.submitResponse = submitResponse;
 window.startGame = startGame;
+window.playAgain = playAgain;
+window.saveStory = saveStory;
